@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: singlestore-backup
+  namespace: singlestore
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup
+          securityContext:
+            runAsUser: 1005
+            runAsGroup: 100
+            fsGroup: 100
+          containers:
+          - name: backup
+            image: bitnami/kubectl:1.27.16
+            command: ["/bin/bash", "-c"]
+            args:
+              - |
+                echo "Starting backup process..."
+                BACKUP_DIR=/backups/$(date +'%Y-%m-%d_%H-%M-%S')
+                mkdir -p $BACKUP_DIR
+                echo "Creating backup directory"
+
+                kubectl get all -o yaml -n singlestore > $BACKUP_DIR/all-resources.yaml || echo "Failed to get all resources"
+                kubectl get secret -o yaml -n singlestore > $BACKUP_DIR/secrets.yaml || echo "Failed to get secret"
+                kubectl get configmaps -o yaml -n singlestore > $BACKUP_DIR/configmaps.yaml || echo "Failed to get configmaps"
+                kubectl get pvc -o yaml -n singlestore > $BACKUP_DIR/pvc.yaml || echo "Failed to get PVC"
+                kubectl get memsql -o yaml -n singlestore > $BACKUP_DIR/memsql.yaml || echo "Failed to get memsql"
+                kubectl get sc -o yaml > $BACKUP_DIR/storageclasses.yaml || echo "Failed to get storageclass"
+
+                echo "SingleStore resources backed up successfully to $BACKUP_DIR"
+
+            volumeMounts:
+              - name: backup-pv
+                mountPath: /backups
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-pv
+              persistentVolumeClaim:
+                claimName: singlestore-backup-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: singlestore-backup-pvc
+  namespace: singlestore
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: longhorn

@@ -1,0 +1,17 @@
+cluster:
+  license: BDg4NTMxNGQ1OGRjNTRlMDY5N2QzODEwOTBhMGIwZjhjAAAAAAAAAAAEAAAAAAAAACgwNQIZAI7vPm98L79184ivYsoBHm5YRinrJHHHYQIYZSlj0kpGwhFwI6X9I33PZui32N2rV8+sAA==
+  adminHashedPassword: "*964053B7B08408D2607120AD66C3A9D3FE2D46EF"
+  nodeImage:
+    repository: singlestore/node
+    tag: alma-8.1.50-740903e129
+  redundancyLevel: 1
+  aggregatorSpec:
+    count: 2
+    height: 0.5
+    storageGB: 30
+    storageClass: longhorn
+  leafSpec:
+    count: 1
+    height: 0.5
+    storageGB: 50
+    storageClass: longhorn
