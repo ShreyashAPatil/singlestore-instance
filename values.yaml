@@ -8,10 +8,10 @@ cluster:
   aggregatorSpec:
     count: 2
     height: 0.5
-    storageGB: 30
+    storageGB: 20
     storageClass: longhorn
   leafSpec:
     count: 1
     height: 0.5
-    storageGB: 50
+    storageGB: 20
     storageClass: longhorn
